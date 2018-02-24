@@ -2,7 +2,7 @@
 
 _Constant-time code_ is a concept that has been developed in the area of
 cryptography since about 2005. It relates to the fact that
-implementation of cryptographic algorithms manipulate secret values, and
+implementations of cryptographic algorithms manipulate secret values, and
 if they do not do so with enough care, outsiders may obtain some
 information on such values through time-based side channels, e.g. by
 measuring the total time taken to perform a computation. Memory caches,
@@ -19,12 +19,12 @@ or [ARM TrustZone](https://developer.arm.com/technologies/trustzone)
 operate in a security model where side channel attacks are very
 effective, since the attacker is supposed to run his own code on the
 host system and can monitor cache accesses with great accuracy.
-Constant-time coding techniques are highly relevant for about everything
+Constant-time coding techniques are highly relevant to about anything
 that is implemented in an enclave.
 
-This library, called CTTK, is a collection of constant-time
+This library, called CTTK, is **a collection of constant-time
 implementations of primitive operations that may help in writing
-constant-time code, including non-cryptographic constant-time code.
+constant-time code, including non-cryptographic constant-time code.**
 
 It shall be noted that the expression "constant-time" is traditional but
 slightly confusing: constant-time code does not always execute in a
@@ -68,7 +68,7 @@ A list of planned features and improvement can be seen in the
 # Compilation
 
 To compile, type `make`. This should work on any decent Linux or \*BSD
-system, bith with GNU make and BSD make. If you use Microsoft Visual C
+system, both with GNU make and BSD make. If you use Microsoft Visual C
 command-line tools on Windows, you may type `nmake`, and it should work
 too. You can tune compile-time options in the relevant file in the
 `conf` directory; these can also be added on the compilation command-line,
@@ -110,7 +110,7 @@ implementation silently when changing the compiler version. More modern,
 safer languages such as [Rust](https://www.rust-lang.org/en-US/) or
 [Go](https://golang.org/) are almost always preferable; and even for
 very low-level, bare metal processing, it makes sense to explore
-alternative such as [Forth](http://wiki.c2.com/?ForthLanguage).
+alternatives such as [Forth](http://wiki.c2.com/?ForthLanguage).
 
 On the other hand, C is still the _lingua franca_ of programming
 languages, and a C compiler can be found for just about any hardware and
