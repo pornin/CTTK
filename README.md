@@ -374,7 +374,7 @@ The following rules are applicable to all big integer functions:
     implementations are provided (`cti_lsh_prot()`...) but they are
     substantially slower.
 
-An exemple of the use of CTTK big integer code is shown below. It is an
+An example of the use of CTTK big integer code is shown below. It is an
 implementation of a function that computes the average of many 64-bit
 integers, and prints the result in decimal (with a precision of 12
 digits in the fractional part). The individual values are considered
