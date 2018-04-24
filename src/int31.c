@@ -2195,3 +2195,98 @@ cttk_i31_mod(uint32_t *m, const uint32_t *a, const uint32_t *b)
 	}
 	gendiv(NULL, m, a, b, 1);
 }
+
+/* see cttk.h */
+void
+cttk_i31_and(uint32_t *d, const uint32_t *a, const uint32_t *b)
+{
+	uint32_t h;
+	size_t len, u;
+
+	h = d[0] & 0x7FFFFFFF;
+	if (h != (a[0] & 0x7FFFFFFF) || h != (b[0] & 0x7FFFFFFF)) {
+		d[0] |= 0x80000000;
+		return;
+	}
+	len = (h + 31) >> 5;
+	d[0] = a[0] | b[0];
+	for (u = 1; u <= len; u ++) {
+		d[u] = a[u] & b[u];
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_or(uint32_t *d, const uint32_t *a, const uint32_t *b)
+{
+	uint32_t h;
+	size_t len, u;
+
+	h = d[0] & 0x7FFFFFFF;
+	if (h != (a[0] & 0x7FFFFFFF) || h != (b[0] & 0x7FFFFFFF)) {
+		d[0] |= 0x80000000;
+		return;
+	}
+	len = (h + 31) >> 5;
+	d[0] = a[0] | b[0];
+	for (u = 1; u <= len; u ++) {
+		d[u] = a[u] | b[u];
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_xor(uint32_t *d, const uint32_t *a, const uint32_t *b)
+{
+	uint32_t h;
+	size_t len, u;
+
+	h = d[0] & 0x7FFFFFFF;
+	if (h != (a[0] & 0x7FFFFFFF) || h != (b[0] & 0x7FFFFFFF)) {
+		d[0] |= 0x80000000;
+		return;
+	}
+	len = (h + 31) >> 5;
+	d[0] = a[0] | b[0];
+	for (u = 1; u <= len; u ++) {
+		d[u] = a[u] ^ b[u];
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_eqv(uint32_t *d, const uint32_t *a, const uint32_t *b)
+{
+	uint32_t h;
+	size_t len, u;
+
+	h = d[0] & 0x7FFFFFFF;
+	if (h != (a[0] & 0x7FFFFFFF) || h != (b[0] & 0x7FFFFFFF)) {
+		d[0] |= 0x80000000;
+		return;
+	}
+	len = (h + 31) >> 5;
+	d[0] = a[0] | b[0];
+	for (u = 1; u <= len; u ++) {
+		d[u] = a[u] ^ b[u] ^ 0x7FFFFFFF;
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_not(uint32_t *d, const uint32_t *a)
+{
+	uint32_t h;
+	size_t len, u;
+
+	h = d[0] & 0x7FFFFFFF;
+	if (h != (a[0] & 0x7FFFFFFF)) {
+		d[0] |= 0x80000000;
+		return;
+	}
+	len = (h + 31) >> 5;
+	d[0] = a[0];
+	for (u = 1; u <= len; u ++) {
+		d[u] = a[u] ^ 0x7FFFFFFF;
+	}
+}

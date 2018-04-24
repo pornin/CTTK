@@ -2448,7 +2448,7 @@ cti_rem(cti_elt *r, const cti_elt *a, const cti_elt *b)
  * value for `m` is greater than or equal to zero, and lower than
  * the absolute value of `b`.
  *
- * If the operands do not match in size, or one of the operands is NaN,
+ * If the operands do not match in size, or one of the source operands is NaN,
  * or the divisor is zero, then the result is set to NaN. By definition,
  * overflows/underflows are not possible. Operands need not be distinct.
  *
@@ -2457,6 +2457,90 @@ cti_rem(cti_elt *r, const cti_elt *a, const cti_elt *b)
  * \param b   divisor.
  */
 void cti_mod(cti_elt *m, const cti_elt *a, const cti_elt *b);
+
+/**
+ * \brief Bitwise AND.
+ *
+ * This function computes the bitwise AND of `a` and `b`; result is
+ * written in `d`. Since two's complement is used, the result is
+ * negative only if both source operands are negative.
+ *
+ * If the operands do not match in size, or one of the source operands is NaN,
+ * then the result is set to NaN. By definition, overflows/underflows are
+ * not possible. Operands need not be distinct.
+ *
+ * \param d   recipient for the bitwise boolean operation.
+ * \param a   first operand.
+ * \param b   second operand.
+ */
+void cti_and(cti_elt *d, const cti_elt *a, const cti_elt *b);
+
+/**
+ * \brief Bitwise OR.
+ *
+ * This function computes the bitwise OR of `a` and `b`; result is
+ * written in `d`. Since two's complement is used, the result is
+ * nonnegative only if both source operands are nonnegative.
+ *
+ * If the operands do not match in size, or one of the source operands is NaN,
+ * then the result is set to NaN. By definition, overflows/underflows are
+ * not possible. Operands need not be distinct.
+ *
+ * \param d   recipient for the bitwise boolean operation.
+ * \param a   first operand.
+ * \param b   second operand.
+ */
+void cti_or(cti_elt *d, const cti_elt *a, const cti_elt *b);
+
+/**
+ * \brief Bitwise XOR.
+ *
+ * This function computes the bitwise XOR of `a` and `b`; result is
+ * written in `d`. Since two's complement is used, the result is
+ * negative only if exactly one of the operands is negative.
+ *
+ * If the operands do not match in size, or one of the source operands is NaN,
+ * then the result is set to NaN. By definition, overflows/underflows are
+ * not possible. Operands need not be distinct.
+ *
+ * \param d   recipient for the bitwise boolean operation.
+ * \param a   first operand.
+ * \param b   second operand.
+ */
+void cti_xor(cti_elt *d, const cti_elt *a, const cti_elt *b);
+
+/**
+ * \brief Bitwise EQV (also known as XORNOT).
+ *
+ * This function computes the bitwise EQV of `a` and `b`; result is
+ * written in `d`. EQV sets each output bit to 1 if the two corresponding
+ * input bits are equal, to 0 otherwise.
+ *
+ * If the operands do not match in size, or one of the source operands is NaN,
+ * then the result is set to NaN. By definition, overflows/underflows are
+ * not possible. Operands need not be distinct.
+ *
+ * \param d   recipient for the bitwise boolean operation.
+ * \param a   first operand.
+ * \param b   second operand.
+ */
+void cti_eqv(cti_elt *d, const cti_elt *a, const cti_elt *b);
+
+/**
+ * \brief Bitwise NOT.
+ *
+ * This function computes the bitwise complement of `a`; result is
+ * written in `d`. Each bit in `d` is the opposite of the corresponding
+ * bit in `a`; this is also known as two's complement.
+ *
+ * If the operands do not match in size, or the source operand is NaN,
+ * then the result is set to NaN. By definition, overflows/underflows are
+ * not possible. Operands need not be distinct.
+ *
+ * \param d   recipient for the bitwise boolean operation.
+ * \param a   operand.
+ */
+void cti_not(cti_elt *d, const cti_elt *a);
 
 #else
 
@@ -2529,6 +2613,11 @@ void cti_mod(cti_elt *m, const cti_elt *a, const cti_elt *b);
 #define cti_div                    cttk_i31_div
 #define cti_rem                    cttk_i31_rem
 #define cti_mod                    cttk_i31_mod
+#define cti_and                    cttk_i31_and
+#define cti_or                     cttk_i31_or
+#define cti_xor                    cttk_i31_xor
+#define cti_eqv                    cttk_i31_eqv
+#define cti_not                    cttk_i31_not
 
 /*
  * The "i31" implementation of big integer represents values as
@@ -2618,6 +2707,11 @@ cttk_i31_rem(uint32_t *r, const uint32_t *a, const uint32_t *b)
 	cttk_i31_divrem(NULL, r, a, b);
 }
 void cttk_i31_mod(uint32_t *m, const uint32_t *a, const uint32_t *b);
+void cttk_i31_and(uint32_t *m, const uint32_t *a, const uint32_t *b);
+void cttk_i31_or(uint32_t *m, const uint32_t *a, const uint32_t *b);
+void cttk_i31_xor(uint32_t *m, const uint32_t *a, const uint32_t *b);
+void cttk_i31_eqv(uint32_t *m, const uint32_t *a, const uint32_t *b);
+void cttk_i31_not(uint32_t *m, const uint32_t *a);
 
 #endif
 

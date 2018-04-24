@@ -953,6 +953,56 @@ zint_rsh(zint *d, zint *a, unsigned n)
 	}
 }
 
+static void
+zint_and(zint *d, const zint *a, const zint *b)
+{
+	int i;
+
+	for (i = 0; i < 32; i ++) {
+		d->v[i] = a->v[i] & b->v[i];
+	}
+}
+
+static void
+zint_or(zint *d, const zint *a, const zint *b)
+{
+	int i;
+
+	for (i = 0; i < 32; i ++) {
+		d->v[i] = a->v[i] | b->v[i];
+	}
+}
+
+static void
+zint_xor(zint *d, const zint *a, const zint *b)
+{
+	int i;
+
+	for (i = 0; i < 32; i ++) {
+		d->v[i] = a->v[i] ^ b->v[i];
+	}
+}
+
+static void
+zint_eqv(zint *d, const zint *a, const zint *b)
+{
+	int i;
+
+	for (i = 0; i < 32; i ++) {
+		d->v[i] = ~(a->v[i] ^ b->v[i]);
+	}
+}
+
+static void
+zint_not(zint *d, const zint *a)
+{
+	int i;
+
+	for (i = 0; i < 32; i ++) {
+		d->v[i] = ~a->v[i];
+	}
+}
+
 /*
  * PRNG. Not crypto-quality, but "randomish" enough for generating test
  * values.
@@ -1923,6 +1973,79 @@ test_i31_div(void)
 	fflush(stdout);
 }
 
+static void
+test_i31_bool(void)
+{
+	cttk_i31_def(x1, 300);
+	cttk_i31_def(x2, 300);
+	cttk_i31_def(x3, 300);
+	zint z1, z2, z3;
+	int i, j;
+	unsigned char tmp1[100], tmp2[100], tmp3[100], tmp4[100];
+
+	printf("Test i31 bool: ");
+	fflush(stdout);
+
+	rnd_init(8);
+
+	for (i = 1; i <= 128; i ++) {
+		cttk_i31_init(x1, i);
+		cttk_i31_init(x2, i);
+		cttk_i31_init(x3, i);
+
+		for (j = 0; j < 100; j ++) {
+			rnd(tmp1, 17);
+			rnd(tmp2, 17);
+			zint_decode(&z1, tmp1, 17, 0, 0);
+			zint_decode(&z2, tmp2, 17, 0, 0);
+			zint_trunc(&z1, i);
+			zint_trunc(&z2, i);
+			zint_encode(tmp1, 17, &z1, 0);
+			zint_encode(tmp2, 17, &z2, 0);
+			cttk_i31_decle_signed(x1, tmp1, 17);
+			cttk_i31_decle_signed(x2, tmp2, 17);
+
+			zint_and(&z3, &z1, &z2);
+			zint_encode(tmp3, 17, &z3, 0);
+			cttk_i31_and(x3, x1, x2);
+			cttk_i31_encle(tmp4, 17, x3);
+			check(memcmp(tmp3, tmp4, 17) == 0, "and (%d,%d)", i, j);
+
+			zint_or(&z3, &z1, &z2);
+			zint_encode(tmp3, 17, &z3, 0);
+			cttk_i31_or(x3, x1, x2);
+			cttk_i31_encle(tmp4, 17, x3);
+			check(memcmp(tmp3, tmp4, 17) == 0, "or (%d,%d)", i, j);
+
+			zint_xor(&z3, &z1, &z2);
+			zint_encode(tmp3, 17, &z3, 0);
+			cttk_i31_xor(x3, x1, x2);
+			cttk_i31_encle(tmp4, 17, x3);
+			check(memcmp(tmp3, tmp4, 17) == 0, "xor (%d,%d)", i, j);
+
+			zint_eqv(&z3, &z1, &z2);
+			zint_encode(tmp3, 17, &z3, 0);
+			cttk_i31_eqv(x3, x1, x2);
+			cttk_i31_encle(tmp4, 17, x3);
+			check(memcmp(tmp3, tmp4, 17) == 0, "eqv (%d,%d)", i, j);
+
+			zint_not(&z3, &z1);
+			zint_encode(tmp3, 17, &z3, 0);
+			cttk_i31_not(x3, x1);
+			cttk_i31_encle(tmp4, 17, x3);
+			check(memcmp(tmp3, tmp4, 17) == 0, "not (%d,%d)", i, j);
+		}
+
+		if ((i & 3) == 0) {
+			printf(".");
+			fflush(stdout);
+		}
+	}
+
+	printf(" done.\n");
+	fflush(stdout);
+}
+
 int
 main(void)
 {
@@ -1938,5 +2061,6 @@ main(void)
 	test_i31_mul();
 	test_i31_shift();
 	test_i31_div();
+	test_i31_bool();
 	return 0;
 }
