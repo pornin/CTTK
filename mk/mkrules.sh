@@ -49,6 +49,7 @@ set -e
 
 # Source files. Please keep in alphabetical order.
 coresrc=" \
+	src/base64.c \
 	src/copy.c \
 	src/hex.c \
 	src/int31.c \

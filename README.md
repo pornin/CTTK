@@ -245,9 +245,25 @@ conceptually leak as well.
 
 ## Base64 Encoding And Decoding
 
-Constant-time Base64 encoding and decoding is planned but not yet
-implemented. The API is already defined in `cttk.h`, similarly to
-the hexadecimal encoding/decoding functions.
+`cttk_bintob64_gen` encode binary data into Base64 characters. Tunable
+options are:
+
+  - Output may be broken into lines. The line end is either an LF
+    (0x0A), or a CR+LF sequence (0x0D 0x0A). Line length is either
+    76 or 64 data characters.
+
+  - The padding characters (one or two "`=`" signs when the input length
+    is not a multiple of 3) may be produced or omitted.
+
+`cttk_b64tobin_gen` parses Base64 characters into binary. The function
+may tolerate (and ignore) whitespace characters; but it can also be
+instructed to report errors on any extra character, including
+whitespace. The padding characters are normally expected and processed,
+but the decoder can also be configured to not use padding.
+
+As for the hexadecimal decoder, the data byte contents are protected
+from outsiders. The data size, and position of data characters and
+whitespace within an incoming stream, may leak.
 
 ## Native Integer Multiplications
 

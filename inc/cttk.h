@@ -1350,11 +1350,13 @@ size_t cttk_bintohex_gen(char *dst, size_t dst_len,
  * was noticed. If the entire source string could be processed with no
  * error, and `err` is not `NULL`, then `*err` is set to `NULL`.
  *
- * When the error is an insufficient output buffer length, `*err` is
- * set to point to the first character that exceeds the capacity of the
- * output buffer (regardless of whether that digit is alone or not). If
- * `err` is `NULL`, then it is not possible to distinguish between a
- * fully successful decoding, and an insufficient output buffer capacity.
+ * When the error is an insufficient output buffer length, `*err` is set
+ * to point to the first character that makes the problem definite (in
+ * order to maintain strict constant-time processing, reporting of such
+ * a problem that could be detected only conditionally to the decoded
+ * bit values is delayed to the next character). If `err` is `NULL`,
+ * then it is not possible to distinguish between a fully successful
+ * decoding, and an insufficient output buffer capacity.
  *
  * The `flags` modify the decoding behaviour:
  *
@@ -1364,8 +1366,11 @@ size_t cttk_bintohex_gen(char *dst, size_t dst_len,
  *     set to point to that character.
  *
  *   - If `CTTK_B64DEC_NO_WS` is set, then all source characters MUST
- *     be Base64 characters; whitespace (including line breaks) will
- *     not be tolerated, and be reported as an error if encountered.
+ *     be Base64 characters; whitespace (including line breaks) will not
+ *     be tolerated, and be reported as an error if encountered. For the
+ *     purposes of this function, "whitespace" consists in bytes of
+ *     value 32 or less (i.e. ASCII space, and all ASCII control
+ *     characters).
  *
  * An error is reported, pointing at the first character past the source
  * array, if the source buffer end is reached, or an `'='` padding sign
@@ -1374,6 +1379,9 @@ size_t cttk_bintohex_gen(char *dst, size_t dst_len,
  * Constant-time behaviour: the values of hex digits are protected, but
  * not their number or location. Side channels may leak the total number
  * of hex digits, and the position of whitespace characters (if skipped).
+ * If the source string is erroneous by having extra non-zero bits in the
+ * last chunk, then the value of these extra bits may leak as well (but
+ * not of the non-extra bits).
  *
  * \param dst       destination buffer (or `NULL`).
  * \param dst_len   maximum size of the destination buffer (in bytes).
@@ -1392,6 +1400,11 @@ size_t cttk_b64tobin_gen(void *dst, size_t dst_len,
 #define CTTK_B64DEC_NO_PAD     0x0001
 
 /**
+ * \brief Base64-decoding flag: reject whitespace character in source string.
+ */
+#define CTTK_B64DEC_NO_WS      0x0002
+
+/**
  * \brief Encode bytes into Base64.
  *
  * The provided source bytes are encoded into Base64. The destination
@@ -1408,7 +1421,7 @@ size_t cttk_b64tobin_gen(void *dst, size_t dst_len,
  *
  * The `flags` modify the behaviour:
  *
- *   - If `CTTK_B64DEC_NO_PAD` is set, then the final `'='` signs (for
+ *   - If `CTTK_B64ENC_NO_PAD` is set, then the final `'='` signs (for
  *     padding the last character group, if needed) are not produced.
  *
  *   - If `CTTK_B64ENC_NEWLINE` is set, then line breaks will be added
@@ -1419,7 +1432,7 @@ size_t cttk_b64tobin_gen(void *dst, size_t dst_len,
  *     use a CR+LF sequence (0x0D and 0x0A bytes, in that order). By
  *     default, line breaks use a single LF (0x0A).
  *
- *   - If `CTTK_B64ENC_LINE64` is set, then line breaks (if produces)
+ *   - If `CTTK_B64ENC_LINE64` is set, then line breaks (if produced)
  *     will occur every 64 characters instead of the default of 76. Some
  *     implementations of Base64 don't tolerate lines longer than 64
  *     characters.

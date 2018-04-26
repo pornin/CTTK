@@ -111,7 +111,12 @@ cttk_hextobin_gen(void *dst, size_t dst_len,
 	for (u = 0; u < src_len; u ++) {
 		int c, d;
 
-		c = src[u];
+		/*
+		 * We read source characters as unsigned bytes, so that
+		 * values are positive and bytes beyond 0x7F are not
+		 * considered whitespace.
+		 */
+		c = *((const unsigned char *)src + u);
 		d = cttk_hexval(c);
 
 		/*

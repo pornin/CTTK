@@ -498,6 +498,362 @@ test_hex(void)
 	fflush(stdout);
 }
 
+static char
+b64char(int x)
+{
+	return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz0123456789+/" [x];
+}
+
+static void
+b64enc(char *dst, const unsigned char *buf, size_t len,
+	int pad, int line_len, int crlf)
+{
+	size_t u, v;
+	int lc;
+
+	lc = 0;
+	v = 0;
+	for (u = 0; (u + 2) < len; u += 3) {
+		uint32_t x;
+
+		x = ((uint32_t)buf[u] << 16)
+			| ((uint32_t)buf[u + 1] << 8)
+			| (uint32_t)buf[u + 2];
+		dst[v ++] = b64char(x >> 18);
+		dst[v ++] = b64char((x >> 12) & 63);
+		dst[v ++] = b64char((x >> 6) & 63);
+		dst[v ++] = b64char(x & 63);
+		lc ++;
+		if (lc == line_len) {
+			lc = 0;
+			if (crlf) {
+				dst[v ++] = '\r';
+			}
+			dst[v ++] = '\n';
+		}
+	}
+	if (u == len - 1) {
+		uint32_t x;
+
+		x = buf[u];
+		dst[v ++] = b64char(x >> 2);
+		dst[v ++] = b64char((x << 4) & 63);
+		if (pad) {
+			dst[v ++] = '=';
+			dst[v ++] = '=';
+		}
+		lc ++;
+	} else if (u == len - 2) {
+		uint32_t x;
+
+		x = ((uint32_t)buf[u] << 8) | (uint32_t)buf[u + 1];
+		dst[v ++] = b64char(x >> 10);
+		dst[v ++] = b64char((x >> 4) & 63);
+		dst[v ++] = b64char((x << 2) & 63);
+		if (pad) {
+			dst[v ++] = '=';
+		}
+		lc ++;
+	}
+	if (lc != 0 && line_len != 0) {
+		if (crlf) {
+			dst[v ++] = '\r';
+		}
+		dst[v ++] = '\n';
+	}
+	dst[v ++] = 0;
+}
+
+static void
+test_base64(void)
+{
+	/*
+	 * Test data is a random 256-byte blob.
+	 */
+	static const unsigned char databin[] = {
+		0x6D, 0xDD, 0x85, 0x66, 0xB3, 0x64, 0xB6, 0x41,
+		0xF6, 0x70, 0x69, 0xD7, 0x20, 0xCB, 0x2A, 0x10,
+		0xE1, 0x33, 0x34, 0xE1, 0x8B, 0x26, 0xB9, 0x71,
+		0xFD, 0xE1, 0x58, 0x87, 0xFD, 0xB2, 0xD1, 0xDA,
+		0x9D, 0x93, 0x04, 0x67, 0x8A, 0xDC, 0x17, 0xDA,
+		0xCB, 0x38, 0xE5, 0xB1, 0x81, 0xCF, 0x8A, 0xF9,
+		0xDB, 0x51, 0xC5, 0x70, 0x2F, 0x26, 0x88, 0x7F,
+		0x36, 0x65, 0xD4, 0xCD, 0x22, 0x67, 0xF9, 0x1D,
+		0x72, 0x9F, 0xE1, 0xFE, 0x2B, 0xF8, 0xF6, 0x7D,
+		0x3B, 0x2B, 0xEE, 0x84, 0x3F, 0xAF, 0xEF, 0x01,
+		0x26, 0x0B, 0x21, 0x21, 0x52, 0x49, 0xE2, 0xFC,
+		0x76, 0x46, 0x3B, 0x70, 0xA2, 0x94, 0x92, 0x1C,
+		0xAF, 0x7D, 0x50, 0xE0, 0x2C, 0x6D, 0x83, 0xA9,
+		0x09, 0x56, 0x21, 0x5D, 0x8D, 0x56, 0x26, 0x06,
+		0x15, 0x63, 0x7E, 0xB3, 0x8C, 0x45, 0x6C, 0x7D,
+		0x82, 0xBD, 0xA0, 0xC7, 0x8E, 0x58, 0xDD, 0xDA,
+		0x70, 0xB8, 0x11, 0x83, 0x2E, 0x81, 0xBC, 0xCF,
+		0xAD, 0x5D, 0x09, 0xDA, 0x60, 0x03, 0xE8, 0x9E,
+		0x72, 0xF9, 0xAE, 0xDC, 0xAC, 0x56, 0x6F, 0xF8,
+		0xEB, 0x44, 0x58, 0xBA, 0x95, 0xB9, 0x2B, 0x71,
+		0x85, 0xD4, 0x58, 0x74, 0xA2, 0x54, 0xC4, 0x66,
+		0x80, 0xE4, 0x67, 0xFE, 0x09, 0x70, 0xD5, 0x2A,
+		0x05, 0x12, 0x63, 0x77, 0xFB, 0xD8, 0x19, 0x4B,
+		0xA6, 0xBE, 0xFE, 0x01, 0x09, 0x7D, 0x52, 0x6A,
+		0x76, 0x8B, 0x12, 0x76, 0x70, 0x67, 0xBA, 0xEC,
+		0x26, 0x97, 0x6C, 0x60, 0xBD, 0x67, 0x8E, 0xD1,
+		0xCA, 0x58, 0xD4, 0x87, 0x54, 0x8E, 0x7D, 0xAA,
+		0x4A, 0x0F, 0xE2, 0x92, 0x13, 0xDF, 0x5E, 0x9F,
+		0x11, 0xB7, 0x44, 0x70, 0x84, 0x04, 0x8F, 0x03,
+		0xB4, 0xBB, 0x83, 0x87, 0x76, 0x1C, 0xC5, 0xB7,
+		0xF2, 0xF8, 0x2C, 0xD4, 0xFF, 0xAC, 0xDA, 0xAD,
+		0xAA, 0x59, 0xBA, 0xD9, 0xA9, 0x8D, 0x54, 0x37
+	};
+
+	static const char datab64[] =
+"bd2FZrNktkH2cGnXIMsqEOEzNOGLJrlx/eFYh/2y0dqdkwRnitwX2ss45bGBz4r521HFcC8miH82"
+"ZdTNImf5HXKf4f4r+PZ9OyvuhD+v7wEmCyEhUkni/HZGO3CilJIcr31Q4Cxtg6kJViFdjVYmBhVj"
+"frOMRWx9gr2gx45Y3dpwuBGDLoG8z61dCdpgA+iecvmu3KxWb/jrRFi6lbkrcYXUWHSiVMRmgORn"
+"/glw1SoFEmN3+9gZS6a+/gEJfVJqdosSdnBnuuwml2xgvWeO0cpY1IdUjn2qSg/ikhPfXp8Rt0Rw"
+"hASPA7S7g4d2HMW38vgs1P+s2q2qWbrZqY1UNw==";
+
+	size_t u;
+
+	printf("Test base64: ");
+	fflush(stdout);
+
+	for (u = 0; u <= sizeof databin; u ++) {
+		char text[(sizeof databin) << 1], tref[sizeof text];
+		unsigned char data[sizeof databin];
+		int ff;
+		size_t len;
+
+		/*
+		 * Check test Base64 encoder against reference.
+		 */
+		b64enc(tref, databin, u, 1, 0, 0);
+		if (u == sizeof databin) {
+			check(strcmp(tref, datab64) == 0, "b64enc ref");
+		} else {
+			len = 4 * (u / 3);
+			check(memcmp(tref, datab64, len) == 0, "b64enc ref");
+		}
+
+		/*
+		 * Test encoder with all flag combinations and truncation.
+		 */
+		for (ff = 0; ff < 10; ff ++) {
+			int pad, line_len, crlf;
+			unsigned flags;
+			size_t v;
+
+			flags = 0;
+			pad = ff / 5;
+			if (!pad) {
+				flags |= CTTK_B64ENC_NO_PAD;
+			}
+			switch (ff % 3) {
+			case 0:
+				line_len = 0;
+				crlf = 0;
+				break;
+			case 1:
+				line_len = 19;
+				crlf = 0;
+				flags |= CTTK_B64ENC_NEWLINE;
+				break;
+			case 2:
+				line_len = 16;
+				crlf = 0;
+				flags |= CTTK_B64ENC_NEWLINE;
+				flags |= CTTK_B64ENC_LINE64;
+				break;
+			case 3:
+				line_len = 19;
+				crlf = 1;
+				flags |= CTTK_B64ENC_NEWLINE;
+				flags |= CTTK_B64ENC_CRLF;
+				break;
+			case 4:
+				line_len = 16;
+				crlf = 1;
+				flags |= CTTK_B64ENC_NEWLINE;
+				flags |= CTTK_B64ENC_LINE64;
+				flags |= CTTK_B64ENC_CRLF;
+				break;
+			}
+
+			b64enc(tref, databin, u, pad, line_len, crlf);
+			len = cttk_bintob64_gen(NULL, 0, databin, u, flags);
+			check(len == strlen(tref), "b64enc (%zu, %d) 1", u, ff);
+			len = cttk_bintob64_gen(text, sizeof text,
+				databin, u, flags);
+			check(len == strlen(tref), "b64enc (%zu, %d) 2", u, ff);
+			check(len == strlen(text), "b64enc (%zu, %d) 3", u, ff);
+			check(!strcmp(text, tref), "b64enc (%zu, %d) 4", u, ff);
+			check(cttk_bintob64_gen(text, 0, databin,
+				u, flags) == 0, "b64enc (%zu, %d) 5", u, ff);
+
+			for (v = 0; v <= len; v ++) {
+				size_t len2;
+
+				len2 = cttk_bintob64_gen(text, v + 1,
+					databin, u, flags);
+				check(len2 == v,
+					"b64enc (%zu, %d, %zu) 6", u, ff, v);
+				check(len2 == strlen(text),
+					"b64enc (%zu, %d, %zu) 7", u, ff, v);
+				check(memcmp(text, tref, len2) == 0,
+					"b64enc (%zu, %d, %zu) 8", u, ff, v);
+			}
+		}
+
+		/*
+		 * Test decoder with added whitespace and non-whitespace.
+		 */
+		for (ff = 0; ff < 2; ff ++) {
+			size_t v;
+
+			b64enc(tref + 1, databin, u, ff, 0, 0);
+			len = strlen(tref + 1);
+			for (v = 0; v <= len; v ++) {
+				size_t len2, len3;
+				const char *err;
+
+				if (v == 0) {
+					tref[0] = ' ';
+				} else {
+					tref[v - 1] = tref[v];
+					tref[v] = ' ';
+				}
+				err = datab64;
+				len2 = cttk_b64tobin_gen(data, sizeof data,
+					tref, len + 1, &err,
+					ff ? 0 : CTTK_B64DEC_NO_PAD);
+				check(len2 == u,
+					"b64dec (%zu, %d, %zu) 1", u, ff, v);
+				check(err == NULL,
+					"b64dec (%zu, %d, %zu) 2", u, ff, v);
+				check(memcmp(data, databin, u) == 0,
+					"b64dec (%zu, %d, %zu) 3", u, ff, v);
+
+				err = datab64;
+				len2 = cttk_b64tobin_gen(data, sizeof data,
+					tref, len + 1, &err,
+					(ff ? 0 : CTTK_B64DEC_NO_PAD)
+					| CTTK_B64DEC_NO_WS);
+				check(err == tref + v,
+					"b64dec (%zu, %d, %zu) 4", u, ff, v);
+				len3 = (v * 3) / 4;
+				if (len3 > u) {
+					len3 = u;
+				}
+				check(len2 == len3,
+					"b64dec (%zu, %d, %zu) 5", u, ff, v);
+				check(memcmp(data, databin, len2) == 0,
+					"b64dec (%zu, %d, %zu) 6", u, ff, v);
+
+				tref[v] = '%';
+				err = datab64;
+				len2 = cttk_b64tobin_gen(data, sizeof data,
+					tref, len + 1, &err,
+					ff ? 0 : CTTK_B64DEC_NO_PAD);
+				check(err == tref + v,
+					"b64dec (%zu, %d, %zu) 7", u, ff, v);
+				len3 = (v * 3) / 4;
+				if (len3 > u) {
+					len3 = u;
+				}
+				check(len2 == len3,
+					"b64dec (%zu, %d, %zu) 8", u, ff, v);
+				check(memcmp(data, databin, len2) == 0,
+					"b64dec (%zu, %d, %zu) 9", u, ff, v);
+			}
+		}
+
+		/*
+		 * Test decoder with a truncated input.
+		 */
+		for (ff = 0; ff < 2; ff ++) {
+			size_t v;
+
+			b64enc(tref, databin, u, ff, 0, 0);
+			len = strlen(tref);
+			for (v = 0; v <= len; v ++) {
+				size_t len2, len3;
+				const char *err, *err2;
+
+				err = datab64;
+				len2 = cttk_b64tobin_gen(data, sizeof data,
+					tref, v, &err,
+					ff ? 0 : CTTK_B64DEC_NO_PAD);
+				len3 = (v * 3) / 4;
+				if (len3 > u) {
+					len3 = u;
+				}
+				check(len2 == len3,
+					"b64trunc1 (%zu, %d, %zu) 1", u, ff, v);
+				if (ff) {
+					if (v % 4 == 0) {
+						err2 = NULL;
+					} else {
+						err2 = tref + v;
+					}
+				} else {
+					int ok;
+
+					if (len3 == u) {
+						ok = 1;
+					} else if (v % 4 == 0) {
+						ok = 1;
+					} else if (v % 4 == 1) {
+						ok = 0;
+					} else if (v % 4 == 2) {
+						ok = !(databin[len3] & 0xF0);
+					} else {
+						ok = !(databin[len3] & 0xC0);
+					}
+					err2 = ok ? NULL : tref + v;
+				}
+				check(err == err2,
+					"b64trunc1 (%zu, %d, %zu) 2", u, ff, v);
+				check(memcmp(data, databin, u) == 0,
+					"b64trunc1 (%zu, %d, %zu) 3", u, ff, v);
+			}
+		}
+
+		/*
+		 * Test decoder with a truncated output.
+		 */
+		for (ff = 0; ff < 2; ff ++) {
+			size_t v;
+
+			b64enc(tref, databin, u, ff, 0, 0);
+			len = strlen(tref);
+			for (v = 0; v <= u; v ++) {
+				size_t len2;
+				const char *err, *err2;
+
+				err = datab64;
+				len2 = cttk_b64tobin_gen(data, v,
+					tref, len, &err,
+					ff ? 0 : CTTK_B64DEC_NO_PAD);
+				check(len2 == v,
+					"b64trunc2 (%zu, %d, %zu) 1", u, ff, v);
+				err2 = (v == u) ? NULL : tref + (4 * v + 2) / 3;
+				check(err == err2,
+					"b64trunc2 (%zu, %d, %zu) 2", u, ff, v);
+				check(memcmp(data, databin, v) == 0,
+					"b64trunc2 (%zu, %d, %zu) 3", u, ff, v);
+			}
+		}
+
+		if ((u & 7) == 0) {
+			printf(".");
+			fflush(stdout);
+		}
+	}
+
+	printf(" done.\n");
+	fflush(stdout);
+}
+
 static void
 test_mul(void)
 {
@@ -2052,6 +2408,7 @@ main(void)
 	test_comparisons_32();
 	test_comparisons_64();
 	test_hex();
+	test_base64();
 	test_mul();
 	test_bitlength();
 	test_i31_set();

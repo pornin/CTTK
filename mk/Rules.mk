@@ -1,6 +1,7 @@
 # Automatically generated rules. Use 'mkrules.sh' to modify/regenerate.
 
 OBJ = \
+ $(OBJDIR)$Pbase64$O \
  $(OBJDIR)$Pcopy$O \
  $(OBJDIR)$Phex$O \
  $(OBJDIR)$Pint31$O \
@@ -36,6 +37,9 @@ $(CTTKDLL): $(OBJDIR) $(OBJ)
 
 $(TESTCTTK): $(CTTKLIB) $(OBJTESTCTTK)
 	$(LD) $(LDFLAGS) $(LDOUT)$(TESTCTTK) $(OBJTESTCTTK) $(CTTKLIB)
+
+$(OBJDIR)$Pbase64$O: src$Pbase64.c $(HEADERSPRIV)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pbase64$O src$Pbase64.c
 
 $(OBJDIR)$Pcopy$O: src$Pcopy.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pcopy$O src$Pcopy.c
