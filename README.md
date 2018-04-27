@@ -446,3 +446,20 @@ realistic, but to demonstrate the usage syntax.)
             printf("avg = %llu.%012llu\n",
                     (unsigned long long)hi, (unsigned long long)lo);
     }
+
+## Oblivious RAM
+
+An _Oblivious RAM_ implementation allows array reads and writes in
+constant-time, i.e. without leaking information about the exchanged
+value or the access index. Currently, CTTK includes only a very basic
+implementation that has cost _O(N)_ for an array of size _N_: for every
+read or write operation, the full array memory is touched. The relevant
+functions are `ctty_array_read()` and `cttk_array_write()`.
+
+Implementations of more efficient ORAM algorithms are planned, but not
+yet done.
+
+Related functions are `cttk_cond_copy()` (constant-time copy of bytes,
+conditionally to a boolean flag) and `cttk_cond_swap()` (constant-time
+exchange of two non-overlapping values, conditionally to a boolean
+flag).

@@ -11,8 +11,8 @@ CTTK:
   - Big integers: extra implementation with 63-bit words (i63).
   - Modular integers (with odd modulus, possibly prime).
   - SIMD optimisations (SSE2, AVX2...).
+  - Oblivious RAM with sub-linear cost.
   - Storage and search structures (maps).
-  - Constant-time array lookup.
   - Automatic bitslicing metaprogramming tool.
 
 The following features have been implemented:
@@ -20,6 +20,7 @@ The following features have been implemented:
   - Boolean type and operations.
   - Comparisons of 32-bit and 64-bit integers.
   - Constant-time conditional copy and swap of buffers.
+  - Constant-time array lookup (with O(N) cost).
   - Hexadecimal encoder / decoder.
   - Base64 encoder / decoder.
   - Big integers: base definitions and conversions to/from native

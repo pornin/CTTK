@@ -1169,6 +1169,48 @@ void cttk_cond_copy(cttk_bool ctl, void *dst, const void *src, size_t len);
  */
 void cttk_cond_swap(cttk_bool ctl, void *a, void *b, size_t len);
 
+/**
+ * \brief Constant-time array look-up (read).
+ *
+ * Given an array of `num_len` elements, of size `elt_len` bytes each,
+ * this function reads element `index` and writes it into the buffer `d`.
+ * The value `a` points at the first array element, whose index is 0.
+ * The array values _and_ the index are protected. The cost of this
+ * function is proportional to the total array size.
+ *
+ * The caller is responsible for making sure that the requested index
+ * is within the proper array range.
+ *
+ * \param d         destination buffer (must have length at least `elt_len`).
+ * \param a         pointer to first array element.
+ * \param elt_len   individual element length (in bytes).
+ * \param num_len   number of elements in the array.
+ * \param index     index of the element to read.
+ */
+void cttk_array_read(void *d,
+	const void *a, size_t elt_len, size_t num_len, size_t index);
+
+/**
+ * \brief Constant-time array look-up (write).
+ *
+ * Given an array of `num_len` elements, of size `elt_len` bytes each,
+ * this function writes a given value into the array element at `index`.
+ * The value `a` points at the first array element, whose index is 0.
+ * The array values _and_ the index are protected. The cost of this
+ * function is proportional to the total array size.
+ *
+ * The caller is responsible for making sure that the requested index
+ * is within the proper array range.
+ *
+ * \param a         pointer to first array element.
+ * \param elt_len   individual element length (in bytes).
+ * \param num_len   number of elements in the array.
+ * \param index     index of the element to write.
+ * \param s         source value (`elt_len` bytes).
+ */
+void cttk_array_write(void *a, size_t elt_len, size_t num_len,
+	size_t index, const void *s);
+
 /* ==================================================================== */
 
 /**

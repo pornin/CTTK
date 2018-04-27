@@ -2,11 +2,10 @@
 
 OBJ = \
  $(OBJDIR)$Pbase64$O \
- $(OBJDIR)$Pcopy$O \
  $(OBJDIR)$Phex$O \
  $(OBJDIR)$Pint31$O \
  $(OBJDIR)$Pmul$O \
- $(OBJDIR)$Pswap$O
+ $(OBJDIR)$Poram1$O
 OBJTESTCTTK = \
  $(OBJDIR)$Ptestcttk$O
 HEADERSPUB = inc$Pcttk.h
@@ -41,9 +40,6 @@ $(TESTCTTK): $(CTTKLIB) $(OBJTESTCTTK)
 $(OBJDIR)$Pbase64$O: src$Pbase64.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pbase64$O src$Pbase64.c
 
-$(OBJDIR)$Pcopy$O: src$Pcopy.c $(HEADERSPRIV)
-	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pcopy$O src$Pcopy.c
-
 $(OBJDIR)$Phex$O: src$Phex.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Phex$O src$Phex.c
 
@@ -53,8 +49,8 @@ $(OBJDIR)$Pint31$O: src$Pint31.c $(HEADERSPRIV)
 $(OBJDIR)$Pmul$O: src$Pmul.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pmul$O src$Pmul.c
 
-$(OBJDIR)$Pswap$O: src$Pswap.c $(HEADERSPRIV)
-	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Pswap$O src$Pswap.c
+$(OBJDIR)$Poram1$O: src$Poram1.c $(HEADERSPRIV)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Poram1$O src$Poram1.c
 
 $(OBJDIR)$Ptestcttk$O: test$Ptestcttk.c $(HEADERSPRIV)
 	$(CC) $(CFLAGS) $(INCFLAGS) $(CCOUT)$(OBJDIR)$Ptestcttk$O test$Ptestcttk.c
