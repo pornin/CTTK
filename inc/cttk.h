@@ -1718,6 +1718,31 @@ void cti_set_s32(cti_elt *x, int32_t v);
 void cti_set_s64(cti_elt *x, int64_t v);
 
 /**
+ * \brief Size conversion.
+ *
+ * This function sets `d` to the value of `a`. Operands need not match
+ * in size. If the source value is NaN, or is outside of the range of
+ * representable values in `d`, then `d` is set to NaN.
+ *
+ * \param d   destination operand.
+ * \param a   source operand.
+ */
+void cti_set(cti_elt *d, const cti_elt *a);
+
+/**
+ * \brief Size conversion (truncating).
+ *
+ * This function sets `d` to the value of `a`. Operands need not match
+ * in size. If the source value is NaN, then `d` is set to NaN. If the
+ * source value does not fit in the range of representable values in `d`,
+ * then it is truncated.
+ *
+ * \param d   destination operand.
+ * \param a   source operand.
+ */
+void cti_set_trunc(cti_elt *d, const cti_elt *a);
+
+/**
  * \brief Test a value for being a NaN.
  *
  * \param x   value to test.
@@ -2612,6 +2637,8 @@ void cti_not(cti_elt *d, const cti_elt *a);
 #define cti_set_u64_trunc          cttk_i31_set_u64_trunc
 #define cti_set_s32                cttk_i31_set_s32
 #define cti_set_s64                cttk_i31_set_s64
+#define cti_set                    cttk_i31_set
+#define cti_set_trunc              cttk_i31_set_trunc
 #define cti_isnan                  cttk_i31_isnan
 #define cti_to_u32_trunc           cttk_i31_to_u32_trunc
 #define cti_to_s32_trunc           cttk_i31_to_s32_trunc
@@ -2692,6 +2719,8 @@ void cttk_i31_set_u64(uint32_t *x, uint64_t v);
 void cttk_i31_set_u64_trunc(uint32_t *x, uint64_t v);
 void cttk_i31_set_s32(uint32_t *x, int32_t v);
 void cttk_i31_set_s64(uint32_t *x, int64_t v);
+void cttk_i31_set(uint32_t *d, const uint32_t *a);
+void cttk_i31_set_trunc(uint32_t *d, const uint32_t *a);
 static inline cttk_bool
 cttk_i31_isnan(const uint32_t *x)
 {

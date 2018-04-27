@@ -1,7 +1,6 @@
 Here is a mostly unordered list of stuff that should be done with
 CTTK:
 
-  - Big integers: extending and narrowing conversions.
   - Big integers: division with unsigned interpretation.
   - Big integers: multiplication optimisation with Karatsuba.
   - Big integers: division optimisation (word-wise processing).
@@ -25,6 +24,7 @@ The following features have been implemented:
   - Base64 encoder / decoder.
   - Big integers: base definitions and conversions to/from native
     integers.
+  - Big integers: extending and narrowing conversions.
   - Big integers: addition and subtraction.
   - Big integers: multiplication.
   - Big integers: Euclidean division.

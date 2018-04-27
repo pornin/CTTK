@@ -1596,6 +1596,55 @@ test_i31_set(void)
 		}
 	}
 
+	printf(" ");
+	fflush(stdout);
+
+	for (i = 1; i <= 80; i ++) {
+		for (j = 1; j <= 80; j ++) {
+			int k;
+
+			for (k = 0; k < 10; k ++) {
+				unsigned char tmp[17], tmp2[17];
+				cttk_i31_def(x, 100);
+				cttk_i31_def(y, 100);
+
+				cttk_i31_init(x, i);
+				cttk_i31_init(y, j);
+				rnd(tmp, 17);
+				zint_decode(&z, tmp, 17, 0, 0);
+				zint_trunc(&z, i);
+				zint_encode(tmp, 17, &z, 0);
+				cttk_i31_decle_signed(x, tmp, 17);
+
+				cttk_i31_set(y, x);
+				if (zint_bitlength(&z) >= (unsigned)j) {
+					check(cttk_i31_isnan(y).v,
+						"set 1 (%d,%d,%d)", i, j, k);
+				} else {
+					check(!cttk_i31_isnan(y).v,
+						"set 2 (%d,%d,%d)", i, j, k);
+					cttk_i31_encle(tmp2, 17, y);
+					check(memcmp(tmp, tmp2, 17) == 0,
+						"set 3 (%d,%d,%d)", i, j, k);
+				}
+
+				cttk_i31_set_trunc(y, x);
+				cttk_i31_encle(tmp2, 17, y);
+				zint_trunc(&z, j);
+				zint_encode(tmp, 17, &z, 0);
+				check(!cttk_i31_isnan(y).v,
+					"set 4 (%d,%d,%d)", i, j, k);
+				check(memcmp(tmp, tmp2, 17) == 0,
+					"set 5 (%d,%d,%d)", i, j, k);
+			}
+		}
+
+		if ((i & 3) == 0) {
+			printf(".");
+			fflush(stdout);
+		}
+	}
+
 	printf(" done.\n");
 	fflush(stdout);
 }

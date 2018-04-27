@@ -90,22 +90,6 @@ cttk_i31_init(uint32_t *x, unsigned size)
 
 /* see cttk.h */
 void
-cttk_i31_mov(uint32_t *d, const uint32_t *x)
-{
-	if (d != x) {
-		size_t len;
-
-		if ((uint32_t)((x[0] ^ d[0]) << 1) != 0) {
-			d[0] |= 0x80000000;
-			return;
-		}
-		len = ((x[0] & 0x7FFFFFFF) + 31) >> 5;
-		memcpy(d, x, (len + 1) * sizeof *x);
-	}
-}
-
-/* see cttk.h */
-void
 cttk_i31_set_u32(uint32_t *x, uint32_t v)
 {
 	uint32_t h, size;
@@ -288,6 +272,99 @@ cttk_i31_set_s64(uint32_t *x, int64_t v)
 		m = (uint64_t)-1 << (size - 1);
 		w &= m;
 		x[0] |= (cttk_u64_neq0(w).v & cttk_u64_neq0(w ^ m).v) << 31;
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_set(uint32_t *d, const uint32_t *a)
+{
+	uint32_t h;
+	size_t dlen, alen;
+
+	/*
+	 * Special case: when source and operands are identical, there
+	 * is nothing more to do.
+	 */
+	if (a == d) {
+		return;
+	}
+
+	/*
+	 * We may now assume that operands do not overlap.
+	 */
+	h = a[0] & 0x7FFFFFFF;
+	alen = (h + 31) >> 5;
+
+	h = d[0] & 0x7FFFFFFF;
+	dlen = (h + 31) >> 5;
+	d[0] = h | (a[0] & 0x80000000);
+
+	if (dlen > alen) {
+		size_t u;
+		uint32_t w;
+
+		memcpy(d + 1, a + 1, alen * sizeof *a);
+		w = -(a[alen] >> 30) >> 1;
+		for (u = alen; u < dlen; u ++) {
+			d[1 + u] = w;
+		}
+	} else {
+		size_t u;
+		uint32_t w, m;
+
+		memcpy(d + 1, a + 1, dlen * sizeof *a);
+		m = -(a[alen] >> 30) >> 1;
+		w = (d[dlen] ^ m) & ((uint32_t)-1 << top_index(h));
+		for (u = dlen; u < alen; u ++) {
+			w |= a[u + 1] ^ m;
+		}
+		d[0] |= (w | -w) & 0x80000000;
+	}
+}
+
+/* see cttk.h */
+void
+cttk_i31_set_trunc(uint32_t *d, const uint32_t *a)
+{
+	uint32_t h;
+	size_t dlen, alen;
+
+	/*
+	 * Special case: when source and operands are identical, there
+	 * is nothing more to do.
+	 */
+	if (a == d) {
+		return;
+	}
+
+	/*
+	 * We may now assume that operands do not overlap.
+	 */
+	h = a[0] & 0x7FFFFFFF;
+	alen = (h + 31) >> 5;
+
+	h = d[0] & 0x7FFFFFFF;
+	dlen = (h + 31) >> 5;
+	d[0] = h | (a[0] & 0x80000000);
+
+	if (dlen > alen) {
+		size_t u;
+		uint32_t w;
+
+		memcpy(d + 1, a + 1, alen * sizeof *a);
+		w = -(a[alen] >> 30) >> 1;
+		for (u = alen; u < dlen; u ++) {
+			d[1 + u] = w;
+		}
+	} else {
+		uint32_t m, sb;
+
+		memcpy(d + 1, a + 1, dlen * sizeof *a);
+		m = (uint32_t)1 << top_index(h);
+		sb = d[dlen] & m;
+		d[dlen] &= m - 1;
+		d[dlen] |= -sb & 0x7FFFFFFF;
 	}
 }
 
@@ -962,11 +1039,13 @@ cttk_i31_cmp(const uint32_t *x, const uint32_t *y)
 void
 cttk_i31_copy(uint32_t *d, const uint32_t *a)
 {
-	if ((uint32_t)((d[0] ^ a[0]) << 1) != 0) {
-		d[0] |= 0x80000000;
-		return;
+	if (d != a) {
+		if ((uint32_t)((d[0] ^ a[0]) << 1) != 0) {
+			d[0] |= 0x80000000;
+			return;
+		}
+		memcpy(d, a, (((a[0] & 0x7FFFFFFF) + 63) >> 5) * sizeof *a);
 	}
-	memcpy(d, a, (((a[0] & 0x7FFFFFFF) + 63) >> 5) * sizeof *a);
 }
 
 /* see cttk.h */
