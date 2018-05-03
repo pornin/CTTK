@@ -19,6 +19,7 @@ The following features have been implemented:
   - Boolean type and operations.
   - Comparisons of 32-bit and 64-bit integers.
   - Constant-time conditional copy and swap of buffers.
+  - Constant-time buffer comparisons (equality, lexicographic order).
   - Constant-time array lookup (with O(N) cost).
   - Hexadecimal encoder / decoder.
   - Base64 encoder / decoder.

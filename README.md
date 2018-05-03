@@ -459,7 +459,14 @@ functions are `ctty_array_read()` and `cttk_array_write()`.
 Implementations of more efficient ORAM algorithms are planned, but not
 yet done.
 
-Related functions are `cttk_cond_copy()` (constant-time copy of bytes,
-conditionally to a boolean flag) and `cttk_cond_swap()` (constant-time
-exchange of two non-overlapping values, conditionally to a boolean
-flag).
+Related functions are:
+
+  - `cttk_cond_copy()`: constant-time copy of bytes, conditionally to
+     a boolean flag.
+
+  - `cttk_cond_swap()`: constant-time exchange of two non-overlapping
+     values, conditionally to a boolean flag.
+
+  - `cttk_array_cmp()`, `cttk_array_eq()` and `cttk_array_neq()`:
+     constant-time comparisons of arrays of bytes (equality and
+     lexicographic order).
