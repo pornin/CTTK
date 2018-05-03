@@ -45,6 +45,91 @@ check(int v, const char *fmt, ...)
 	}
 }
 
+/*
+ * PRNG. Not crypto-quality, but "randomish" enough for generating test
+ * values.
+ */
+static uint32_t rnd_state[16];
+
+static void
+rnd_init(uint64_t seed)
+{
+	int i;
+
+	for (i = 0; i < 16; i ++) {
+		rnd_state[i] = (uint32_t)seed;
+		seed = (seed * 0x2F25F7F336563959) + 0xEC2BAAED5DF4DC7D;
+	}
+}
+
+static void
+rnd_step(void)
+{
+	int i;
+
+	for (i = 0; i < 10; i ++) {
+
+#define QROUND(a, b, c, d)   do { \
+		rnd_state[a] += rnd_state[b]; \
+		rnd_state[d] ^= rnd_state[a]; \
+		rnd_state[d] = (rnd_state[d] << 16) | (rnd_state[d] >> 16); \
+		rnd_state[c] += rnd_state[d]; \
+		rnd_state[b] ^= rnd_state[c]; \
+		rnd_state[b] = (rnd_state[b] << 12) | (rnd_state[b] >> 20); \
+		rnd_state[a] += rnd_state[b]; \
+		rnd_state[d] ^= rnd_state[a]; \
+		rnd_state[d] = (rnd_state[d] <<  8) | (rnd_state[d] >> 24); \
+		rnd_state[c] += rnd_state[d]; \
+		rnd_state[b] ^= rnd_state[c]; \
+		rnd_state[b] = (rnd_state[b] <<  7) | (rnd_state[b] >> 25); \
+	} while (0)
+
+		QROUND( 0,  4,  8, 12);
+		QROUND( 1,  5,  9, 13);
+		QROUND( 2,  6, 10, 14);
+		QROUND( 3,  7, 11, 15);
+		QROUND( 0,  5, 10, 15);
+		QROUND( 1,  6, 11, 12);
+		QROUND( 2,  7,  8, 13);
+		QROUND( 3,  4,  9, 14);
+
+#undef QROUND
+
+	}
+}
+
+static uint32_t
+rnd32(void)
+{
+	rnd_step();
+	return rnd_state[0];
+}
+
+static uint64_t
+rnd64(void)
+{
+	rnd_step();
+	return (uint64_t)rnd_state[0] + ((uint64_t)rnd_state[1] << 32);
+}
+
+static void
+rnd(void *dst, size_t len)
+{
+	unsigned char *buf;
+	size_t u;
+	uint64_t x;
+
+	buf = dst;
+	x = 0;
+	for (u = 0; u < len; u ++) {
+		if ((u & 7) == 0) {
+			x = rnd64();
+		}
+		buf[u] = (unsigned char)x;
+		x >>= 8;
+	}
+}
+
 static void
 test_comparisons_32(void)
 {
@@ -321,6 +406,55 @@ test_comparisons_64(void)
 		}
 
 		if ((i & 15) == 0) {
+			printf(".");
+			fflush(stdout);
+		}
+	}
+
+	printf(" done.\n");
+	fflush(stdout);
+}
+
+static void
+test_comparisons_buffers(void)
+{
+	unsigned char buf1[200], buf2[sizeof buf1];
+	size_t u;
+
+	printf("Test comparisons (buffers): ");
+	fflush(stdout);
+
+	rnd_init(2);
+
+	for (u = 0; u < sizeof buf1; u ++) {
+		size_t v;
+		int i;
+
+		for (i = 0; i < 20; i ++) {
+			rnd(buf1, u);
+			memcpy(buf2, buf1, u);
+			check(cttk_array_eq(buf1, buf2, u).v,
+				"array_eq 1 (%zu,%d)", u, i);
+			check(!cttk_array_neq(buf1, buf2, u).v,
+				"array_neq 1 (%zu,%d)", u, i);
+			check(cttk_array_cmp(buf1, buf2, u) == 0,
+				"array_cmp 1 (%zu,%d)", u, i);
+		}
+		for (v = 0; v < u; v ++) {
+			int cc;
+
+			buf2[v] ^= 0xA5;
+			check(!cttk_array_eq(buf1, buf2, u).v,
+				"array_eq 2 (%zu,%zu)", u, v);
+			check(cttk_array_neq(buf1, buf2, u).v,
+				"array_neq 2 (%zu,%zu)", u, v);
+			cc = buf1[v] < buf2[v] ? -1 : 1;
+			check(cttk_array_cmp(buf1, buf2, u) == cc,
+				"array_cmp 2 (%zu,%zu)", u, v);
+			buf2[v] = buf1[v];
+		}
+
+		if (u % 8 == 0) {
 			printf(".");
 			fflush(stdout);
 		}
@@ -1359,91 +1493,6 @@ zint_not(zint *d, const zint *a)
 	}
 }
 
-/*
- * PRNG. Not crypto-quality, but "randomish" enough for generating test
- * values.
- */
-static uint32_t rnd_state[16];
-
-static void
-rnd_init(uint64_t seed)
-{
-	int i;
-
-	for (i = 0; i < 16; i ++) {
-		rnd_state[i] = (uint32_t)seed;
-		seed = (seed * 0x2F25F7F336563959) + 0xEC2BAAED5DF4DC7D;
-	}
-}
-
-static void
-rnd_step(void)
-{
-	int i;
-
-	for (i = 0; i < 10; i ++) {
-
-#define QROUND(a, b, c, d)   do { \
-		rnd_state[a] += rnd_state[b]; \
-		rnd_state[d] ^= rnd_state[a]; \
-		rnd_state[d] = (rnd_state[d] << 16) | (rnd_state[d] >> 16); \
-		rnd_state[c] += rnd_state[d]; \
-		rnd_state[b] ^= rnd_state[c]; \
-		rnd_state[b] = (rnd_state[b] << 12) | (rnd_state[b] >> 20); \
-		rnd_state[a] += rnd_state[b]; \
-		rnd_state[d] ^= rnd_state[a]; \
-		rnd_state[d] = (rnd_state[d] <<  8) | (rnd_state[d] >> 24); \
-		rnd_state[c] += rnd_state[d]; \
-		rnd_state[b] ^= rnd_state[c]; \
-		rnd_state[b] = (rnd_state[b] <<  7) | (rnd_state[b] >> 25); \
-	} while (0)
-
-		QROUND( 0,  4,  8, 12);
-		QROUND( 1,  5,  9, 13);
-		QROUND( 2,  6, 10, 14);
-		QROUND( 3,  7, 11, 15);
-		QROUND( 0,  5, 10, 15);
-		QROUND( 1,  6, 11, 12);
-		QROUND( 2,  7,  8, 13);
-		QROUND( 3,  4,  9, 14);
-
-#undef QROUND
-
-	}
-}
-
-static uint32_t
-rnd32(void)
-{
-	rnd_step();
-	return rnd_state[0];
-}
-
-static uint64_t
-rnd64(void)
-{
-	rnd_step();
-	return (uint64_t)rnd_state[0] + ((uint64_t)rnd_state[1] << 32);
-}
-
-static void
-rnd(void *dst, size_t len)
-{
-	unsigned char *buf;
-	size_t u;
-	uint64_t x;
-
-	buf = dst;
-	x = 0;
-	for (u = 0; u < len; u ++) {
-		if ((u & 7) == 0) {
-			x = rnd64();
-		}
-		buf[u] = (unsigned char)x;
-		x >>= 8;
-	}
-}
-
 static void
 test_i31_set(void)
 {
@@ -2032,7 +2081,7 @@ test_i31_mul(void)
 	printf("Test i31 mul: ");
 	fflush(stdout);
 
-	rnd_init(5);
+	rnd_init(6);
 
 	cttk_i31_init(x1, 1);
 	cttk_i31_init(x2, 1);
@@ -2163,7 +2212,7 @@ test_i31_shift(void)
 	printf("Test i31 shift: ");
 	fflush(stdout);
 
-	rnd_init(6);
+	rnd_init(7);
 
 	for (i = 1; i <= 128; i ++) {
 		cttk_i31_init(x1, i);
@@ -2256,7 +2305,7 @@ test_i31_div(void)
 	printf("Test i31 div: ");
 	fflush(stdout);
 
-	rnd_init(7);
+	rnd_init(8);
 
 	for (i = 1; i <= 128; i ++) {
 		cttk_i31_init(a, i);
@@ -2391,7 +2440,7 @@ test_i31_bool(void)
 	printf("Test i31 bool: ");
 	fflush(stdout);
 
-	rnd_init(8);
+	rnd_init(9);
 
 	for (i = 1; i <= 128; i ++) {
 		cttk_i31_init(x1, i);
@@ -2456,6 +2505,7 @@ main(void)
 {
 	test_comparisons_32();
 	test_comparisons_64();
+	test_comparisons_buffers();
 	test_hex();
 	test_base64();
 	test_mul();

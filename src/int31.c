@@ -1023,7 +1023,7 @@ cttk_i31_sign(const uint32_t *x)
 }
 
 /* see cttk.h */
-int
+int32_t
 cttk_i31_cmp(const uint32_t *x, const uint32_t *y)
 {
 	uint32_t w;

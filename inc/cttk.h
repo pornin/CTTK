@@ -863,7 +863,7 @@ cttk_u32_cmp(uint32_t x, uint32_t y)
  * \param y   second operand.
  * \return  -1, 0 or 1.
  */
-static inline int64_t
+static inline int32_t
 cttk_s64_cmp(int64_t x, int64_t y)
 {
 	return (int32_t)cttk_s64_gt(x, y).v | -(int32_t)cttk_s64_gt(y, x).v;
@@ -880,7 +880,7 @@ cttk_s64_cmp(int64_t x, int64_t y)
  * \param y   second operand.
  * \return  -1, 0 or 1.
  */
-static inline int64_t
+static inline int32_t
 cttk_u64_cmp(uint64_t x, uint64_t y)
 {
 	return (int32_t)cttk_u64_gt(x, y).v | -(int32_t)cttk_u64_gt(y, x).v;
@@ -1210,6 +1210,63 @@ void cttk_array_read(void *d,
  */
 void cttk_array_write(void *a, size_t elt_len, size_t num_len,
 	size_t index, const void *s);
+
+/**
+ * \brief Constant-time comparison (equality).
+ *
+ * This function compares the two buffers at addresses `src1` and `src2`,
+ * both of length `len` bytes. Returned value is true if the buffers
+ * have equal contents, false otherwise.
+ *
+ * All source bytes are touched; the comparison result, and the offset
+ * of the first differing byte, do not leak.
+ *
+ * \param src1   first buffer for comparison.
+ * \param src2   second buffer for comparison.
+ * \param len    buffer length (in bytes).
+ * \return  true on equal contents.
+ */
+cttk_bool cttk_array_eq(const void *src1, const void *src2, size_t len);
+
+/**
+ * \brief Constant-time comparison (inequality).
+ *
+ * This function compares the two buffers at addresses `src1` and `src2`,
+ * both of length `len` bytes. Returned value is true if the buffers
+ * have different contents, false otherwise.
+ *
+ * All source bytes are touched; the comparison result, and the offset
+ * of the first differing byte, do not leak.
+ *
+ * \param src1   first buffer for comparison.
+ * \param src2   second buffer for comparison.
+ * \param len    buffer length (in bytes).
+ * \return  true on different contents.
+ */
+static inline cttk_bool
+cttk_array_neq(const void *src1, const void *src2, size_t len)
+{
+	return cttk_not(cttk_array_eq(src1, src2, len));
+}
+
+/**
+ * \brief Constant-time comparison (lexicographic order).
+ *
+ * This function compares the two buffers at addresses `src1` and `src2`,
+ * both of length `len` bytes. Returned value is -1, 0 or 1, depending
+ * on whether the first buffer is lower than, equal to, or greater than
+ * the second buffer. Lexicographic order is applied on the individual
+ * byte values, considered as unsigned integer in the 0 to 255 range.
+ *
+ * All source bytes are touched; the comparison result, and the offset
+ * of the first differing byte, do not leak.
+ *
+ * \param src1   first buffer for comparison.
+ * \param src2   second buffer for comparison.
+ * \param len    buffer length (in bytes).
+ * \return  -1, 0 or 1.
+ */
+int32_t cttk_array_cmp(const void *src1, const void *src2, size_t len);
 
 /* ==================================================================== */
 
@@ -2130,7 +2187,7 @@ int cti_sign(const cti_elt *x);
  * \param y   first operand.
  * \return  -1, 0 or 1.
  */
-int cti_cmp(const cti_elt *x, const cti_elt *y);
+int32_t cti_cmp(const cti_elt *x, const cti_elt *y);
 
 /**
  * \brief Copy an integer.

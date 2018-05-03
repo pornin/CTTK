@@ -131,3 +131,70 @@ cttk_array_write(void *a, size_t elt_len, size_t num_len,
 		cttk_cond_copy(cttk_u64_eq(u, index), b, s, elt_len);
 	}
 }
+
+/* see cttk.h */
+cttk_bool
+cttk_array_eq(const void *src1, const void *src2, size_t len)
+{
+	const unsigned char *buf1, *buf2;
+	size_t u;
+	uint32_t r;
+
+	r = 0;
+	buf1 = src1;
+	buf2 = src2;
+	for (u = 0; u < len; u ++) {
+		r |= buf1[u] ^ buf2[u];
+	}
+	return cttk_u32_eq0(r);
+}
+
+/* see cttk.h */
+int32_t
+cttk_array_cmp(const void *src1, const void *src2, size_t len)
+{
+	const unsigned char *buf1, *buf2;
+	uint32_t r;
+	size_t u;
+
+	buf1 = src1;
+	buf2 = src2;
+	r = 0;
+	for (u = 0; u < len; u ++) {
+		uint32_t z;
+
+		/*
+		 * If the bytes are equal, then z is zero.
+		 * If buf1[u] > buf2[u], then z is in the 1..255 range.
+		 * If buf1[u] < buf2[u], then bits 8..31 of z are set to 1.
+		 */
+		z = buf1[u] - buf2[u];
+
+		/*
+		 * Set bit 8 to 1 if bits 0..7 are not all zero.
+		 */
+		z |= z + 0xFF;
+
+		/*
+		 * At that point:
+		 *  - If buf1[u] == buf2[u], then z == 0xFF.
+		 *  - If buf1[u] < buf2[u], then bits 8..31 of z are all one.
+		 *  - If buf1[u] > buf2[u], then bit 8 is one, and bits 9..31
+		 *    are zero.
+		 * We just need to shift the result to remove the low 8 bits,
+		 * duplicating the sign bit as needed.
+		 */
+		z = (z >> 8) | (z & 0xFF000000);
+
+		/*
+		 * If r is 1 or -1 at this point, then its low bit is set,
+		 * and "(r & 1) - 1" will be 0; in that case, r remains
+		 * unmodified.
+		 *
+		 * If r is 0, then "(r & 1) - 1" will be -1, and r is set
+		 * to the value of z (which is 0, 1 or -1).
+		 */
+		r |= (uint32_t)((r & 1) - 1) & z;
+	}
+	return *(int32_t *)&r;
+}
