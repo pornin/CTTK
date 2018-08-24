@@ -2847,12 +2847,12 @@ cttk_i31_rem(uint32_t *r, const uint32_t *a, const uint32_t *b)
 {
 	cttk_i31_divrem(NULL, r, a, b);
 }
-void cttk_i31_mod(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_and(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_or(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_xor(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_eqv(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_not(uint32_t *m, const uint32_t *a);
+void cttk_i31_mod(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_and(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_or(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_xor(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_eqv(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_not(uint32_t *d, const uint32_t *a);
 
 #endif
 

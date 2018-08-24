@@ -1023,7 +1023,7 @@ cttk_i31_sign(const uint32_t *x)
 }
 
 /* see cttk.h */
-int32_t
+int
 cttk_i31_cmp(const uint32_t *x, const uint32_t *y)
 {
 	uint32_t w;
@@ -1037,22 +1037,22 @@ cttk_i31_cmp(const uint32_t *x, const uint32_t *y)
 
 /* see cttk.h */
 void
-cttk_i31_copy(uint32_t *d, const uint32_t *a)
+cttk_i31_copy(uint32_t *d, const uint32_t *s)
 {
-	if (d != a) {
-		if ((uint32_t)((d[0] ^ a[0]) << 1) != 0) {
+	if (d != s) {
+		if ((uint32_t)((d[0] ^ s[0]) << 1) != 0) {
 			d[0] |= 0x80000000;
 			return;
 		}
-		memcpy(d, a, (((a[0] & 0x7FFFFFFF) + 63) >> 5) * sizeof *a);
+		memcpy(d, s, (((s[0] & 0x7FFFFFFF) + 63) >> 5) * sizeof *s);
 	}
 }
 
 /* see cttk.h */
 void
-cttk_i31_cond_copy(cttk_bool ctl, uint32_t *d, const uint32_t *a)
+cttk_i31_cond_copy(cttk_bool ctl, uint32_t *d, const uint32_t *s)
 {
-	cttk_i31_mux(ctl, d, a, d);
+	cttk_i31_mux(ctl, d, s, d);
 }
 
 /* see cttk.h */
@@ -1769,7 +1769,7 @@ static const uint32_t p2m31[] = {
 
 /* see cttk.h */
 void
-cttk_i31_lsh(uint32_t *d, const uint32_t *a, unsigned n)
+cttk_i31_lsh(uint32_t *d, const uint32_t *a, uint32_t n)
 {
 	cttk_bool r;
 
@@ -1803,7 +1803,7 @@ cttk_i31_lsh_prot(uint32_t *d, const uint32_t *a, uint32_t n)
 
 /* see cttk.h */
 void
-cttk_i31_lsh_trunc(uint32_t *d, const uint32_t *a, unsigned n)
+cttk_i31_lsh_trunc(uint32_t *d, const uint32_t *a, uint32_t n)
 {
 	if (((d[0] ^ a[0]) << 1) != 0) {
 		d[0] |= 0x80000000;
@@ -1831,7 +1831,7 @@ cttk_i31_lsh_trunc_prot(uint32_t *d, const uint32_t *a, uint32_t n)
 
 /* see cttk.h */
 void
-cttk_i31_rsh(uint32_t *d, const uint32_t *a, unsigned n)
+cttk_i31_rsh(uint32_t *d, const uint32_t *a, uint32_t n)
 {
 	if (((d[0] ^ a[0]) << 1) != 0) {
 		d[0] |= 0x80000000;
@@ -2263,16 +2263,16 @@ cttk_i31_divrem(uint32_t *q, uint32_t *r, const uint32_t *a, const uint32_t *b)
 
 /* see cttk.h */
 void
-cttk_i31_mod(uint32_t *m, const uint32_t *a, const uint32_t *b)
+cttk_i31_mod(uint32_t *d, const uint32_t *a, const uint32_t *b)
 {
 	uint32_t h;
 
-	h = m[0] & 0x7FFFFFFF;
+	h = d[0] & 0x7FFFFFFF;
 	if (h != (a[0] & 0x7FFFFFFF) || h != (b[0] & 0x7FFFFFFF)) {
-		m[0] |= 0x80000000;
+		d[0] |= 0x80000000;
 		return;
 	}
-	gendiv(NULL, m, a, b, 1);
+	gendiv(NULL, d, a, b, 1);
 }
 
 /* see cttk.h */
