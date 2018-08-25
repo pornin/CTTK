@@ -2814,7 +2814,7 @@ cttk_bool cttk_i31_leq(const uint32_t *x, const uint32_t *y);
 cttk_bool cttk_i31_gt(const uint32_t *x, const uint32_t *y);
 cttk_bool cttk_i31_geq(const uint32_t *x, const uint32_t *y);
 int cttk_i31_sign(const uint32_t *x);
-int cttk_i31_cmp(const uint32_t *x, const uint32_t *y);
+int32_t cttk_i31_cmp(const uint32_t *x, const uint32_t *y);
 void cttk_i31_copy(uint32_t *d, const uint32_t *s);
 void cttk_i31_cond_copy(cttk_bool ctl, uint32_t *d, const uint32_t *s);
 void cttk_i31_swap(uint32_t *a, uint32_t *b);
@@ -2847,12 +2847,12 @@ cttk_i31_rem(uint32_t *r, const uint32_t *a, const uint32_t *b)
 {
 	cttk_i31_divrem(NULL, r, a, b);
 }
-void cttk_i31_mod(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_and(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_or(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_xor(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_eqv(uint32_t *m, const uint32_t *a, const uint32_t *b);
-void cttk_i31_not(uint32_t *m, const uint32_t *a);
+void cttk_i31_mod(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_and(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_or(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_xor(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_eqv(uint32_t *d, const uint32_t *a, const uint32_t *b);
+void cttk_i31_not(uint32_t *d, const uint32_t *a);
 
 #endif
 
