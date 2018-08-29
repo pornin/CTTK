@@ -2803,8 +2803,11 @@ int32_t cttk_i31_to_s32(const uint32_t *x);
 uint64_t cttk_i31_to_u64(const uint32_t *x);
 int64_t cttk_i31_to_s64(const uint32_t *x);
 static inline size_t
-cttk_i31_bit_length(uint32_t *x) {
-	return *x - (*x >> 5);
+cttk_i31_bit_length(const uint32_t *x) {
+	uint32_t h;
+
+	h = *x;
+	return h >> 31 ? 0 : h - (h >> 5);
 }
 void cttk_i31_decbe_signed(uint32_t *x, const void *src, size_t len);
 void cttk_i31_decbe_unsigned(uint32_t *x, const void *src, size_t len);
