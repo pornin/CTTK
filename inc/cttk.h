@@ -1896,6 +1896,16 @@ uint64_t cti_to_u64(const cti_elt *x);
 int64_t cti_to_s64(const cti_elt *x);
 
 /**
+ * \brief Get the length of an integer in bits.
+ *
+ * This function returns the bit-length of the value.
+ *
+ * \param x   value to test.
+ * \return  the bit-length of `x`.
+ */
+size_t cti_bit_length(const cti_elt *x);
+
+/**
  * \brief Decode a big integer from bytes (big-endian, signed).
  *
  * The most significant bit of the first byte is used as sign bit. If
@@ -2705,6 +2715,7 @@ void cti_not(cti_elt *d, const cti_elt *a);
 #define cti_to_s32                 cttk_i31_to_s32
 #define cti_to_u64                 cttk_i31_to_u64
 #define cti_to_s64                 cttk_i31_to_s64
+#define cti_bit_length             cttk_i31_bit_length
 #define cti_decbe_signed           cttk_i31_decbe_signed
 #define cti_decbe_unsigned         cttk_i31_decbe_unsigned
 #define cti_decbe_signed_trunc     cttk_i31_decbe_signed_trunc
@@ -2760,8 +2771,8 @@ void cti_not(cti_elt *d, const cti_elt *a);
 
 /*
  * The "i31" implementation of big integer represents values as
- * arrays of 32bit words (uint32_t). The first array encodes the
- * integer size, and contains the "NaN flag". Subsequent arrays
+ * arrays of 32bit words (uint32_t). The first element encodes the
+ * integer size, and contains the "NaN flag". Subsequent elements
  * encode the value, with 31 bits per word (the top bit is kept
  * equal to 0 at all times, even for a NaN).
  */
@@ -2791,6 +2802,13 @@ uint32_t cttk_i31_to_u32(const uint32_t *x);
 int32_t cttk_i31_to_s32(const uint32_t *x);
 uint64_t cttk_i31_to_u64(const uint32_t *x);
 int64_t cttk_i31_to_s64(const uint32_t *x);
+static inline size_t
+cttk_i31_bit_length(const uint32_t *x) {
+	uint32_t h;
+
+	h = *x;
+	return h >> 31 ? 0 : h - (h >> 5);
+}
 void cttk_i31_decbe_signed(uint32_t *x, const void *src, size_t len);
 void cttk_i31_decbe_unsigned(uint32_t *x, const void *src, size_t len);
 void cttk_i31_decbe_signed_trunc(uint32_t *x, const void *src, size_t len);
